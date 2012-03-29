@@ -19,35 +19,34 @@
 ;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 ;;; Commentary:
-;; Duplicate current line.
-;; Duplicate a selection when selection is active.
-;;
+;; 1. Duplicate current line.
+;; 2. Duplicate a selection when selection is active.
+;; 3. Only C-u, replicate, comment out the range.
+;; 4. Numerical prefix is specified as 'C-u 5': do multiple times repeatedly.
+;; 
 ;; (require 'duplicate-thing)
 ;; (global-set-key (kbd "M-c") 'duplicate-thing)
 ;; 
 
 ;;; Code:
 
-(defun duplicate-thing ()
-  (interactive)
-  (if mark-active
-      (duplicate-region)
-    (duplicate-line)))
-
-(defun duplicate-line ()
+(defun duplicate-thing (n)
+  (interactive "p")
   (save-excursion
-    (let (start)
-    (beginning-of-line)
-    (setq start (point))
-    (next-line)
-    (kill-ring-save start (point))
-    (yank)
-    )))
+    (let (start end)
+      (cond (mark-active
+             (setq start (region-beginning) end (region-end)))
+            (t
+             (beginning-of-line)
+             (setq start (point))
+             (forward-line)
+             (setq end (point))))
+      (kill-ring-save start end)
+      (if (= 4 n) ; only C-u (...)
+          (progn
+            (comment-region start end)
+            (yank))
+        (dotimes (i (or n 1))
+          (yank))))))
 
-(defun duplicate-region ()
-  (save-excursion
-    (kill-ring-save (region-beginning) (region-end))
-    (yank)))
-
-(provide 'duplicate-thing)
 ;;; duplicate-thing.el ends here
