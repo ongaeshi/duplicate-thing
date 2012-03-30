@@ -49,4 +49,5 @@
         (dotimes (i (or n 1))
           (yank))))))
 
+(provide 'duplicate-thing)
 ;;; duplicate-thing.el ends here
