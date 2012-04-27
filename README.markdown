@@ -6,6 +6,8 @@ duplicate-thing
 
 ## Description
 
+*duplicate-thing.el* is Emacs lisp. Easy duplicate line or region, with comment out.
+
 1. Duplicate current line.
 2. Duplicate a selection when selection is active.
 3. Only C-u, replicate, comment out the range.
@@ -18,10 +20,6 @@ duplicate-thing
 ## License
 
 GPLv3
-
-## Dependencies
-
-* Emacs
 
 ## Install
 
