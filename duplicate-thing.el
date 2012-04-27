@@ -31,9 +31,11 @@
 ;;; Code:
 
 (defun duplicate-thing (n)
-  (interactive "p")
+  (interactive "P")
   (save-excursion
-    (let (start end)
+    (let (start
+          end
+          (with-comment-out (consp n)))
       (cond (mark-active
              (setq start (region-beginning) end (region-end)))
             (t
@@ -42,7 +44,7 @@
              (forward-line)
              (setq end (point))))
       (kill-ring-save start end)
-      (if (= 4 n) ; only C-u (...)
+      (if with-comment-out
           (progn
             (comment-region start end)
             (yank))
