@@ -1,9 +1,10 @@
-;;; duplicate-thing.el --- 
+;;; duplicate-thing.el --- Duplicate current line & selection
 
 ;; Copyright (C) 2012 ongaeshi
 
 ;; Author: ongaeshi
-;; Keywords: 
+;; Keywords: command duplicate line selection
+;; Version: 0.2
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
