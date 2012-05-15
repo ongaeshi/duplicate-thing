@@ -31,6 +31,7 @@
 
 ;;; Code:
 
+;;;###autoload
 (defun duplicate-thing (n)
   (interactive "P")
   (save-excursion
