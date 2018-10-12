@@ -22,36 +22,59 @@
 ;;; Commentary:
 ;; 1. Duplicate current line.
 ;; 2. Duplicate a selection when selection is active.
-;; 3. Only C-u, replicate, comment out the range.
-;; 4. Numerical prefix is specified as 'C-u 5': do multiple times repeatedly.
-;; 
+;;
 ;; (require 'duplicate-thing)
 ;; (global-set-key (kbd "M-c") 'duplicate-thing)
-;; 
+;;
 
 ;;; Code:
 
+(defun line-start-p (p)
+  "Return t if point P is beginning of line."
+  (goto-char p)
+  (= 0 (current-column)))
+
+(defun expand-selection (p1 p2)
+  "Expand region in a way that P1 to beginning of line and P2 to beginning of next line."
+  (let (start end)
+    (cond (mark-active
+           (goto-char p1)
+           (beginning-of-line)
+           (setq start (point))
+           (goto-char p2)
+           (unless (= 0 (current-column)) (unless (= 0 (forward-line)) (newline)))
+           (setq end (point)))
+          (t
+           (beginning-of-line)
+           (setq start (point))
+           (unless (= 0 (forward-line)) (newline))
+           (setq end (point))))
+    (setq deactivate-mark nil)
+    (goto-char end)
+    (set-mark start)))
+
+(defun move-to-yank-pos (p)
+  "Move point P to yank position."
+  (goto-char p)
+  (unless (line-start-p p)
+    (unless (= 0 (forward-line))
+      (newline))))
+
 ;;;###autoload
-(defun duplicate-thing (n)
-  (interactive "P")
-  (save-excursion
-    (let (start
-          end
-          (with-comment-out (consp n)))
-      (cond (mark-active
-             (setq start (region-beginning) end (region-end)))
-            (t
-             (beginning-of-line)
-             (setq start (point))
-             (forward-line)
-             (setq end (point))))
-      (kill-ring-save start end)
-      (if with-comment-out
-          (progn
-            (comment-region start end)
-            (yank))
-        (dotimes (i (or n 1))
-          (yank))))))
+(defun duplicate-thing (p1 p2)
+  "Duplicate active region from P1 to P2. If there is no active region, duplicate current line."
+  (interactive "r")
+  (let (start end len text)
+    (expand-selection p1 p2)
+    (setq start (region-beginning)
+          end   (region-end)
+          len   (- end start)
+          text  (buffer-substring start end))
+    (move-to-yank-pos end)
+    (insert text)
+    (set-mark (- (point) len))
+    (setq deactivate-mark nil)
+    (setq transient-mark-mode (cons 'only t))))
 
 (provide 'duplicate-thing)
 ;;; duplicate-thing.el ends here
