@@ -3,7 +3,8 @@
 ;; Copyright (C) 2012 ongaeshi
 
 ;; Author: ongaeshi
-;; Keywords: command duplicate line selection
+;; Keywords: convenience command duplicate line selection
+;; URL: https://github.com/ongaeshi/duplicate-thing
 ;; Version: 0.2
 
 ;; This program is free software; you can redistribute it and/or modify
@@ -25,53 +26,54 @@
 ;;
 ;; (require 'duplicate-thing)
 ;; (global-set-key (kbd "M-c") 'duplicate-thing)
-;;
 
 ;;; Code:
 
-(defun line-start-p (p)
-  "Return t if point P is beginning of line."
-  (goto-char p)
+(defun duplicate-thing-line-start-p ()
+  "Return 't if current position is beginning of line."
   (= 0 (current-column)))
 
-(defun expand-selection (p1 p2)
-  "Expand region in a way that P1 to beginning of line and P2 to beginning of next line."
+(defun duplicate-thing-line-start-after-forward-line-p ()
+  "Return 't if the position is beginning of line after foward-line."
+  (forward-line)
+  (duplicate-thing-line-start-p))
+
+(defun duplicate-thing-expand-selection (p1 p2)
+  "Expand selection to contain while lines.
+Expand P1 to beginning of line and P2 to end of line (or more precisely)
+the beginning of next line."
   (let (start end)
     (cond (mark-active
            (goto-char p1)
            (beginning-of-line)
            (setq start (point))
            (goto-char p2)
-           (unless (= 0 (current-column)) (unless (= 0 (forward-line)) (newline)))
+           (unless (= 0 (current-column))
+             (unless (duplicate-thing-line-start-after-forward-line-p)
+               (newline)))
            (setq end (point)))
           (t
            (beginning-of-line)
            (setq start (point))
-           (unless (= 0 (forward-line)) (newline))
+           (unless (duplicate-thing-line-start-after-forward-line-p) (newline))
            (setq end (point))))
     (setq deactivate-mark nil)
     (goto-char end)
     (set-mark start)))
 
-(defun move-to-yank-pos (p)
-  "Move point P to yank position."
-  (goto-char p)
-  (unless (line-start-p p)
-    (unless (= 0 (forward-line))
-      (newline))))
-
 ;;;###autoload
-(defun duplicate-thing (p1 p2)
-  "Duplicate active region from P1 to P2. If there is no active region, duplicate current line."
-  (interactive "r")
+(defun duplicate-thing (p1 p2 n)
+  "Duplicate line or region N times.
+If it has active mark (P1, P2), it will expand the selection and duplicate it.
+If it doesn't have active mark, it will select current line and duplicate it."
+  (interactive "r\np")
   (let (start end len text)
-    (expand-selection p1 p2)
+    (duplicate-thing-expand-selection p1 p2)
     (setq start (region-beginning)
           end   (region-end)
           len   (- end start)
           text  (buffer-substring start end))
-    (move-to-yank-pos end)
-    (insert text)
+    (dotimes (i (or n 1)) (insert text))
     (set-mark (- (point) len))
     (setq deactivate-mark nil)
     (setq transient-mark-mode (cons 'only t))))
