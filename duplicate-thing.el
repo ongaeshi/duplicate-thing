@@ -29,14 +29,10 @@
 
 ;;; Code:
 
-(defun duplicate-thing-line-start-p ()
-  "Return 't if current position is beginning of line."
-  (= 0 (current-column)))
-
 (defun duplicate-thing-line-start-after-forward-line-p ()
   "Return 't if the position is beginning of line after foward-line."
   (forward-line)
-  (duplicate-thing-line-start-p))
+  (= 0 (current-column)))
 
 (defun duplicate-thing-expand-selection (p1 p2)
   "Expand selection to contain while lines.
