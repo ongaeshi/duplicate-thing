@@ -36,27 +36,29 @@
   (forward-line)
   (= 0 (current-column)))
 
+(defun duplicate-thing-select-current-line ()
+  "Select current line."
+  (let (start end)
+    (beginning-of-line)
+    (setq start (point))
+    (unless (duplicate-thing-line-start-after-forward-line-p) (newline))
+    (setq end (point))
+    (setq deactivate-mark nil)
+    (set-mark start)))
+
 (defun duplicate-thing-expand-selection ()
   "Expand selection to contain whole lines."
   (let ((start (region-beginning))
         (end   (region-end)))
-    (message (format "%d, %d" start end))
-    (cond (mark-active
-           (goto-char start)
-           (beginning-of-line)
-           (setq start (point))
-           (goto-char end)
-           (unless (= 0 (current-column))
-             (unless (duplicate-thing-line-start-after-forward-line-p)
-               (newline)))
-           (setq end (point)))
-          (t
-           (beginning-of-line)
-           (setq start (point))
-           (unless (duplicate-thing-line-start-after-forward-line-p) (newline))
-           (setq end (point))))
-    (setq deactivate-mark nil)
+    (goto-char start)
+    (beginning-of-line)
+    (setq start (point))
     (goto-char end)
+    (unless (= 0 (current-column))
+      (unless (duplicate-thing-line-start-after-forward-line-p)
+        (newline)))
+    (setq end (point))
+    (setq deactivate-mark nil)
     (set-mark start)))
 
 (defun duplicate-thing-at (p text n)
@@ -71,7 +73,9 @@
 If it has active mark (P1, P2), it will expand the selection and duplicate it.
 If it doesn't have active mark, it will select current line and duplicate it."
   (interactive "P")
-  (duplicate-thing-expand-selection)
+  (if mark-active
+      (duplicate-thing-expand-selection)
+    (duplicate-thing-select-current-line))
   (let (p1 p2 len text with-comment-out)
     (setq p1   (region-beginning)
           p2   (region-end)
