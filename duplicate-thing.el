@@ -23,7 +23,9 @@
 ;;; Commentary:
 ;; 1. Duplicate current line.
 ;; 2. Duplicate a selection when selection is active.
-;;
+;; 3. Only C-u, replicate, comment out the range.
+;; 4. Numerical prefix is specified as 'C-u 5': do multiple times repeatedly.
+
 ;; (require 'duplicate-thing)
 ;; (global-set-key (kbd "M-c") 'duplicate-thing)
 
@@ -34,16 +36,16 @@
   (forward-line)
   (= 0 (current-column)))
 
-(defun duplicate-thing-expand-selection (p1 p2)
-  "Expand selection to contain while lines.
-Expand P1 to beginning of line and P2 to end of line (or more precisely)
-the beginning of next line."
-  (let (start end)
+(defun duplicate-thing-expand-selection ()
+  "Expand selection to contain whole lines."
+  (let ((start (region-beginning))
+        (end   (region-end)))
+    (message (format "%d, %d" start end))
     (cond (mark-active
-           (goto-char p1)
+           (goto-char start)
            (beginning-of-line)
            (setq start (point))
-           (goto-char p2)
+           (goto-char end)
            (unless (= 0 (current-column))
              (unless (duplicate-thing-line-start-after-forward-line-p)
                (newline)))
@@ -57,22 +59,31 @@ the beginning of next line."
     (goto-char end)
     (set-mark start)))
 
+(defun duplicate-thing-at (p text n)
+  "Duplicate TEXT N times at P."
+  (dotimes (i (or n 1)) (insert text))
+  (set-mark p)
+  (setq deactivate-mark nil))
+
 ;;;###autoload
-(defun duplicate-thing (p1 p2 n)
+(defun duplicate-thing (n)
   "Duplicate line or region N times.
 If it has active mark (P1, P2), it will expand the selection and duplicate it.
 If it doesn't have active mark, it will select current line and duplicate it."
-  (interactive "r\np")
-  (let (start end len text)
-    (duplicate-thing-expand-selection p1 p2)
-    (setq start (region-beginning)
-          end   (region-end)
-          len   (- end start)
-          text  (buffer-substring start end))
-    (dotimes (i (or n 1)) (insert text))
-    (set-mark (- (point) len))
-    (setq deactivate-mark nil)
-    (setq transient-mark-mode (cons 'only t))))
+  (interactive "P")
+  (duplicate-thing-expand-selection)
+  (let (p1 p2 len text with-comment-out)
+    (setq p1   (region-beginning)
+          p2   (region-end)
+          len  (- p2 p1)
+          text (buffer-substring p1 p2)
+          with-comment-out (consp n))
+    (if with-comment-out
+        (progn
+          (comment-region p1 p2)
+          (duplicate-thing-at (point) text 1))
+      (duplicate-thing-at p2 text n)))
+  (setq transient-mark-mode (cons 'only t)))
 
 (provide 'duplicate-thing)
 ;;; duplicate-thing.el ends here
