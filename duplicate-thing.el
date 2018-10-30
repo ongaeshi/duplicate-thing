@@ -70,7 +70,7 @@
 ;;;###autoload
 (defun duplicate-thing (n)
   "Duplicate line or region N times.
-If it has active mark (P1, P2), it will expand the selection and duplicate it.
+If it has active mark, it will expand the selection and duplicate it.
 If it doesn't have active mark, it will select current line and duplicate it."
   (interactive "P")
   (if mark-active
