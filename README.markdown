@@ -28,6 +28,17 @@ GPLv3
 (auto-install-from-url "https://raw.github.com/ongaeshi/duplicate-thing/master/duplicate-thing.el")
 ```
 
+### Install with `straight.el` and `use-package`
+
+```emacs-lisp
+(straight-use-package '(duplicate-thing :type git :host github :repo "ongaeshi/duplicate-thing"))
+
+(use-package duplicate-thing
+  :bind
+  ("M-c" . duplicate-thing))
+```
+
+
 ## .emacs.d/init.el
 
 ```emacs-lisp

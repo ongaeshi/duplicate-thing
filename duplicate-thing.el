@@ -31,20 +31,12 @@
 
 ;;; Code:
 
-(defun duplicate-thing-line-start-after-forward-line-p ()
-  "Return 't if the position is beginning of line after foward-line."
-  (forward-line)
-  (= 0 (current-column)))
-
 (defun duplicate-thing-select-current-line ()
-  "Select current line."
-  (let (start end)
+  "Select current line and keep a mark on it."
     (beginning-of-line)
-    (setq start (point))
-    (unless (duplicate-thing-line-start-after-forward-line-p) (newline))
-    (setq end (point))
-    (setq deactivate-mark nil)
-    (set-mark start)))
+    (push-mark (point) t t)
+    (end-of-line)
+    (setq deactivate-mark nil))
 
 (defun duplicate-thing-expand-selection ()
   "Expand selection to contain whole lines."
@@ -52,19 +44,16 @@
         (end   (region-end)))
     (goto-char start)
     (beginning-of-line)
-    (setq start (point))
+    (push-mark (point) t t)
     (goto-char end)
-    (unless (= 0 (current-column))
-      (unless (duplicate-thing-line-start-after-forward-line-p)
-        (newline)))
-    (setq end (point))
-    (setq deactivate-mark nil)
-    (set-mark start)))
+    (end-of-line)
+    (setq deactivate-mark nil)))
 
 (defun duplicate-thing-at (p text n)
   "Duplicate TEXT N times at P."
+  (newline)
+  (push-mark (point) t t)
   (dotimes (i (or n 1)) (insert text))
-  (set-mark p)
   (setq deactivate-mark nil))
 
 ;;;###autoload
@@ -86,7 +75,7 @@ If it doesn't have active mark, it will select current line and duplicate it."
         (progn
           (comment-region p1 p2)
           (duplicate-thing-at (point) text 1))
-      (duplicate-thing-at p2 text n)))
+      (duplicate-thing-at  p2 text n)))
   (setq transient-mark-mode (cons 'only t)))
 
 (provide 'duplicate-thing)
